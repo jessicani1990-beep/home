@@ -1,0 +1,461 @@
+import { useState, useEffect, useMemo } from "react";
+
+const STORAGE_KEY = "purchase-tracker-v3";
+const todayStr = () => new Date().toISOString().split("T")[0];
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr) - new Date(todayStr())) / 86400000);
+}
+function formatDate(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleDateString("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+function formatPrice(n) { return Number(n).toLocaleString("zh-TW"); }
+
+const CATEGORIES = [
+  { id: "3c",      label: "3C 電子",  icon: "💻", color: "#EEF4FF", text: "#2555A8", border: "#C0D2F5" },
+  { id: "food",    label: "食品飲料", icon: "🥗", color: "#EDFAF2", text: "#1B7040", border: "#B8E8CB" },
+  { id: "appliance",label: "家電",   icon: "🏠", color: "#F5F0FF", text: "#5B35B0", border: "#D0BBF5" },
+  { id: "clothing",label: "衣物配件",icon: "👕", color: "#FFF0FB", text: "#9B2080", border: "#F0B8E8" },
+  { id: "book",    label: "書籍",    icon: "📖", color: "#FFFAEE", text: "#8A6510", border: "#EDD87A" },
+  { id: "transport",label: "交通",   icon: "🚗", color: "#FFF4EE", text: "#9B3A10", border: "#F5C8A8" },
+  { id: "health",  label: "健康美容",icon: "💊", color: "#EDFBF8", text: "#0D7060", border: "#A8E8DC" },
+  { id: "sport",   label: "運動休閒",icon: "⚽", color: "#F0FBE8", text: "#3A7010", border: "#C0E898" },
+  { id: "other",   label: "其他",    icon: "📦", color: "#F5F3EF", text: "#6A6560", border: "#D8D4CC" },
+];
+
+const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+const SORTS = [
+  { id: "date_desc", label: "最新購買" },
+  { id: "date_asc",  label: "最舊購買" },
+  { id: "price_desc",label: "金額高→低" },
+  { id: "price_asc", label: "金額低→高" },
+  { id: "expiry",    label: "到期日近→遠" },
+];
+
+const EMPTY_FORM = { name: "", category: "other", purchaseDate: todayStr(), price: "", expiryDate: "", warrantyDate: "", note: "" };
+
+function sortItems(items, sortId) {
+  const arr = [...items];
+  if (sortId === "date_desc") return arr.sort((a, b) => b.purchaseDate.localeCompare(a.purchaseDate));
+  if (sortId === "date_asc")  return arr.sort((a, b) => a.purchaseDate.localeCompare(b.purchaseDate));
+  if (sortId === "price_desc") return arr.sort((a, b) => Number(b.price) - Number(a.price));
+  if (sortId === "price_asc")  return arr.sort((a, b) => Number(a.price) - Number(b.price));
+  if (sortId === "expiry") {
+    return arr.sort((a, b) => {
+      const da = a.expiryDate ? daysUntil(a.expiryDate) : 99999;
+      const db = b.expiryDate ? daysUntil(b.expiryDate) : 99999;
+      return da - db;
+    });
+  }
+  return arr;
+}
+
+function getTags(item) {
+  const tags = [];
+  const ed = daysUntil(item.expiryDate), wd = daysUntil(item.warrantyDate);
+  if (ed !== null) {
+    if (ed < 0) tags.push({ cls: "tred", t: `到期已過 ${Math.abs(ed)} 天` });
+    else if (ed === 0) tags.push({ cls: "tamb", t: "今天到期" });
+    else if (ed <= 7) tags.push({ cls: "tamb", t: `到期剩 ${ed} 天` });
+    else if (ed <= 30) tags.push({ cls: "tblu", t: `到期剩 ${ed} 天` });
+    else tags.push({ cls: "tgrn", t: `到期 ${formatDate(item.expiryDate)}` });
+  }
+  if (wd !== null) {
+    if (wd < 0) tags.push({ cls: "tred", t: "保固已到期" });
+    else if (wd <= 30) tags.push({ cls: "tamb", t: `保固剩 ${wd} 天` });
+    else tags.push({ cls: "tgrn", t: `保固至 ${formatDate(item.warrantyDate)}` });
+  }
+  return tags;
+}
+
+const css = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.pt{font-family:'DM Sans',-apple-system,sans-serif;background:#F7F5F0;min-height:100vh;padding-bottom:60px}
+.pt-hd{background:#1A1917;padding:30px 20px 0;position:relative;overflow:hidden}
+.pt-hd::after{content:'';position:absolute;top:-80px;right:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(210,168,78,.16) 0%,transparent 65%);pointer-events:none}
+.pt-hd-bar{width:24px;height:2px;background:#D2A84E;margin-bottom:13px}
+.pt-hd-title{font-family:'DM Serif Display',Georgia,serif;font-size:26px;font-weight:400;color:#F2EDE2;letter-spacing:-.2px;margin-bottom:3px}
+.pt-hd-sub{font-size:12px;color:rgba(242,237,226,.4);font-weight:300;letter-spacing:.3px;margin-bottom:20px}
+.pt-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #2C2A27}
+.pt-stat{background:#1A1917;padding:14px 18px;border-right:1px solid #2C2A27}
+.pt-stat:last-child{border-right:none}
+.pt-stat-n{font-family:'DM Serif Display',Georgia,serif;font-size:22px;color:#F2EDE2;line-height:1;margin-bottom:3px}
+.pt-stat-l{font-size:10px;color:rgba(242,237,226,.35);text-transform:uppercase;letter-spacing:.5px}
+.pt-body{padding:20px 16px;max-width:560px;margin:0 auto}
+.pt-alert{background:#FFFBF0;border:1px solid #EDD87A;border-radius:12px;padding:15px 18px;margin-bottom:18px}
+.pt-al-hd{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.pt-al-dot{width:6px;height:6px;border-radius:50%;background:#C99A1A;flex-shrink:0}
+.pt-al-title{font-size:11px;font-weight:500;color:#7A5E0A;text-transform:uppercase;letter-spacing:.5px}
+.pt-al-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:.5px solid rgba(201,154,26,.18)}
+.pt-al-row:last-child{border-bottom:none}
+.pt-al-name{font-size:13px;color:#3A2E0A}
+.pt-toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.pt-srch{position:relative;flex:1;min-width:160px}
+.pt-srch-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:#ACA89F;pointer-events:none}
+.pt-srch input{width:100%;background:#fff;border:1px solid #E2DDD5;border-radius:10px;padding:10px 13px 10px 34px;font-size:13.5px;font-family:inherit;color:#1A1917;outline:none;transition:border-color .2s}
+.pt-srch input:focus{border-color:#D2A84E}
+.pt-srch input::placeholder{color:#BEB9B2}
+.pt-sort-wrap{position:relative}
+.pt-sort-btn{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #E2DDD5;border-radius:10px;padding:10px 12px;font-size:12.5px;font-family:inherit;color:#6A6560;cursor:pointer;white-space:nowrap;transition:border-color .2s}
+.pt-sort-btn:hover,.pt-sort-btn.open{border-color:#D2A84E;color:#1A1917}
+.pt-sort-dd{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #E2DDD5;border-radius:11px;overflow:hidden;z-index:50;min-width:140px;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.pt-sort-opt{padding:10px 14px;font-size:13px;cursor:pointer;color:#3A3530;transition:background .12s;display:flex;align-items:center;justify-content:space-between}
+.pt-sort-opt:hover{background:#F7F5F0}
+.pt-sort-opt.active{color:#D2A84E;font-weight:500}
+.pt-cat-filter{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pt-cat-filter::-webkit-scrollbar{display:none}
+.pt-cf-btn{flex-shrink:0;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid #E2DDD5;background:#fff;color:#6A6560;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.pt-cf-btn:hover{border-color:#CCC8BF}
+.pt-cf-btn.active{background:#1A1917;color:#F2EDE2;border-color:#1A1917}
+.pt-addbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:#1A1917;color:#F2EDE2;border:none;border-radius:10px;padding:13px;font-size:13.5px;font-family:inherit;cursor:pointer;margin-bottom:18px;letter-spacing:.3px;transition:background .15s,transform .1s}
+.pt-addbtn:hover{background:#2A2824}
+.pt-addbtn:active{transform:scale(.99)}
+.pt-list{display:flex;flex-direction:column;gap:9px}
+.pt-card{background:#fff;border:1px solid #E4E0D8;border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s;animation:fu .28s ease both}
+.pt-card:hover{border-color:#CCC8BF;box-shadow:0 3px 14px rgba(26,25,23,.07)}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pt-cm{padding:15px 17px;display:flex;gap:12px;align-items:flex-start}
+.pt-ci{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;margin-top:1px}
+.pt-cc{flex:1;min-width:0}
+.pt-cname{font-size:15px;font-weight:500;color:#1A1917;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt-cmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pt-cm-item{font-size:12px;color:#9B9590;display:flex;align-items:center;gap:3px}
+.pt-cat-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:400}
+.pt-ca{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.pt-cprice{font-family:'DM Serif Display',Georgia,serif;font-size:17px;color:#1A1917;white-space:nowrap}
+.pt-cbtns{display:flex;gap:3px}
+.pt-ib{background:none;border:none;cursor:pointer;padding:5px;border-radius:7px;color:#ACA89F;font-size:14px;line-height:1;transition:background .12s,color .12s}
+.pt-ib:hover{background:#F2EFE8;color:#3A3530}
+.pt-ib.d:hover{background:#FFF0F0;color:#B83030}
+.pt-tags{display:flex;gap:6px;flex-wrap:wrap;padding:0 17px 13px}
+.pt-tag{font-size:11px;padding:3px 10px;border-radius:20px;letter-spacing:.15px}
+.tred{background:#FFF0F0;color:#B83030;border:.5px solid #F5BFBF}
+.tamb{background:#FFFAEE;color:#8A6510;border:.5px solid #EDD87A}
+.tblu{background:#EEF4FF;color:#2555A8;border:.5px solid #C0D2F5}
+.tgrn{background:#EDFAF2;color:#1B7040;border:.5px solid #B8E8CB}
+.pt-det{background:#FAFAF7;border-top:1px solid #EDE9E0;padding:13px 17px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pt-dl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#ACA89F;margin-bottom:2px}
+.pt-dv{font-size:13px;color:#3A3530}
+.pt-empty{text-align:center;padding:44px 0}
+.pt-empty-ic{font-size:34px;margin-bottom:10px}
+.pt-empty-t{font-size:13px;color:#ACA89F}
+.pt-ov{position:fixed;inset:0;background:rgba(26,25,23,.52);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.pt-sh{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding-bottom:44px;animation:su .28s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pt-sh-handle{width:34px;height:3px;background:#E2DDD5;border-radius:2px;margin:13px auto 18px}
+.pt-sh-title{font-family:'DM Serif Display',Georgia,serif;font-size:20px;font-weight:400;color:#1A1917;padding:0 22px;margin-bottom:20px}
+.pt-ff{padding:0 22px;margin-bottom:14px}
+.pt-fl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#9B9590;margin-bottom:5px;display:block}
+.pt-in{width:100%;background:#FAFAF7;border:1px solid #E4E0D8;border-radius:9px;padding:11px 13px;font-size:14px;font-family:inherit;color:#1A1917;outline:none;transition:border-color .2s,background .2s}
+.pt-in:focus{border-color:#D2A84E;background:#fff}
+.pt-in::placeholder{color:#BEB9B2}
+.pt-cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 22px;margin-bottom:14px}
+.pt-cat-opt{border:1px solid #E4E0D8;border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;background:#FAFAF7}
+.pt-cat-opt:hover{border-color:#CCC8BF;background:#F2EFE8}
+.pt-cat-opt.sel{border-color:#D2A84E;background:#FFFAEE}
+.pt-cat-opt-ic{font-size:20px;margin-bottom:4px}
+.pt-cat-opt-lb{font-size:11px;color:#6A6560;line-height:1.2}
+.pt-cat-opt.sel .pt-cat-opt-lb{color:#8A6510;font-weight:500}
+.pt-fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 22px;margin-bottom:14px}
+.pt-fdiv{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#BEB9B2;padding:2px 22px 10px;display:flex;align-items:center;gap:8px}
+.pt-fdiv::before,.pt-fdiv::after{content:'';flex:1;height:.5px;background:#E4E0D8}
+.pt-fbtns{display:grid;grid-template-columns:1fr 2fr;gap:10px;padding:8px 22px 0}
+.pt-bcnl{background:#F2EFE8;border:none;border-radius:9px;padding:13px;font-size:14px;font-family:inherit;color:#8A857C;cursor:pointer;transition:background .15s}
+.pt-bcnl:hover{background:#E8E4DC}
+.pt-bsub{background:#1A1917;border:none;border-radius:9px;padding:13px;font-size:14px;font-family:inherit;color:#F2EDE2;cursor:pointer;letter-spacing:.3px;transition:background .15s}
+.pt-bsub:hover:not(:disabled){background:#2A2824}
+.pt-bsub:disabled{opacity:.35;cursor:not-allowed}
+`;
+
+function AlertBlock({ items }) {
+  const alerts = useMemo(() => {
+    const out = [];
+    items.forEach(item => {
+      const ed = daysUntil(item.expiryDate), wd = daysUntil(item.warrantyDate);
+      if (ed !== null && ed <= 30) out.push({ item, type: "到期日", days: ed });
+      if (wd !== null && wd <= 30) out.push({ item, type: "保固", days: wd });
+    });
+    return out.sort((a, b) => a.days - b.days);
+  }, [items]);
+  if (!alerts.length) return null;
+  return (
+    <div className="pt-alert">
+      <div className="pt-al-hd">
+        <div className="pt-al-dot" />
+        <div className="pt-al-title">即將到期 · {alerts.length} 項</div>
+      </div>
+      {alerts.map((a, i) => {
+        const cls = a.days < 0 ? "tred" : a.days <= 7 ? "tamb" : "tblu";
+        const txt = a.days < 0 ? "已過期" : a.days === 0 ? "今天" : `${a.days} 天`;
+        return (
+          <div className="pt-al-row" key={i}>
+            <div className="pt-al-name">{a.item.name} <span style={{ fontSize: 11, color: "#C99A1A" }}>· {a.type}</span></div>
+            <span className={`pt-tag ${cls}`}>{txt}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Card({ item, onEdit, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const tags = getTags(item);
+  const cat = CAT_MAP[item.category] || CAT_MAP.other;
+  return (
+    <div className="pt-card">
+      <div className="pt-cm">
+        <div className="pt-ci" style={{ background: cat.color }}>{cat.icon}</div>
+        <div className="pt-cc">
+          <div className="pt-cname">{item.name}</div>
+          <div className="pt-cmeta">
+            <span className="pt-cat-badge" style={{ background: cat.color, color: cat.text, border: `0.5px solid ${cat.border}` }}>{cat.label}</span>
+            <span className="pt-cm-item">
+              <i className="ti ti-calendar" style={{ fontSize: 12 }} aria-hidden="true" />
+              {formatDate(item.purchaseDate)}
+            </span>
+            {item.note && <span className="pt-cm-item" style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.note}</span>}
+          </div>
+        </div>
+        <div className="pt-ca">
+          <div className="pt-cprice">NT${formatPrice(item.price)}</div>
+          <div className="pt-cbtns">
+            <button className="pt-ib" onClick={() => setOpen(o => !o)} aria-label="展開">
+              <i className={`ti ti-chevron-${open ? "up" : "down"}`} />
+            </button>
+            <button className="pt-ib" onClick={() => onEdit(item)} aria-label="編輯">
+              <i className="ti ti-edit" />
+            </button>
+            <button className="pt-ib d" onClick={() => onDelete(item.id)} aria-label="刪除">
+              <i className="ti ti-trash" />
+            </button>
+          </div>
+        </div>
+      </div>
+      {tags.length > 0 && (
+        <div className="pt-tags">{tags.map((t, i) => <span key={i} className={`pt-tag ${t.cls}`}>{t.t}</span>)}</div>
+      )}
+      {open && (
+        <div className="pt-det">
+          <div><div className="pt-dl">購買日期</div><div className="pt-dv">{formatDate(item.purchaseDate)}</div></div>
+          <div><div className="pt-dl">金額</div><div className="pt-dv">NT${formatPrice(item.price)}</div></div>
+          <div><div className="pt-dl">到期日</div><div className="pt-dv">{formatDate(item.expiryDate) || "—"}</div></div>
+          <div><div className="pt-dl">保固至</div><div className="pt-dv">{formatDate(item.warrantyDate) || "—"}</div></div>
+          {item.note && <div style={{ gridColumn: "1/-1" }}><div className="pt-dl">備註</div><div className="pt-dv">{item.note}</div></div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Sheet({ form, setForm, isEdit, onClose, onSubmit }) {
+  return (
+    <div className="pt-ov" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="pt-sh">
+        <div className="pt-sh-handle" />
+        <div className="pt-sh-title">{isEdit ? "編輯紀錄" : "新增購買紀錄"}</div>
+        <div className="pt-ff">
+          <label className="pt-fl">品名 *</label>
+          <input className="pt-in" placeholder="例：MacBook Pro M4" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+        </div>
+        <div style={{ padding: "0 22px 6px" }}>
+          <label className="pt-fl" style={{ display: "block", marginBottom: 8 }}>分類 *</label>
+          <div className="pt-cat-grid">
+            {CATEGORIES.map(c => (
+              <div key={c.id} className={`pt-cat-opt${form.category === c.id ? " sel" : ""}`} onClick={() => setForm(f => ({ ...f, category: c.id }))}>
+                <div className="pt-cat-opt-ic">{c.icon}</div>
+                <div className="pt-cat-opt-lb">{c.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="pt-fr">
+          <div>
+            <label className="pt-fl">購買日期 *</label>
+            <input className="pt-in" type="date" value={form.purchaseDate} onChange={e => setForm(f => ({ ...f, purchaseDate: e.target.value }))} />
+          </div>
+          <div>
+            <label className="pt-fl">金額 (NT$) *</label>
+            <input className="pt-in" type="number" placeholder="0" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+          </div>
+        </div>
+        <div className="pt-fdiv">選填</div>
+        <div className="pt-fr">
+          <div>
+            <label className="pt-fl">到期日</label>
+            <input className="pt-in" type="date" value={form.expiryDate} onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value }))} />
+          </div>
+          <div>
+            <label className="pt-fl">保固至</label>
+            <input className="pt-in" type="date" value={form.warrantyDate} onChange={e => setForm(f => ({ ...f, warrantyDate: e.target.value }))} />
+          </div>
+        </div>
+        <div className="pt-ff">
+          <label className="pt-fl">備註</label>
+          <input className="pt-in" placeholder="品牌、型號或其他備忘…" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+        </div>
+        <div className="pt-fbtns">
+          <button className="pt-bcnl" onClick={onClose}>取消</button>
+          <button className="pt-bsub" onClick={onSubmit} disabled={!form.name.trim() || !form.price}>
+            {isEdit ? "儲存變更" : "新增紀錄"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SortDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const cur = SORTS.find(s => s.id === value);
+  return (
+    <div className="pt-sort-wrap">
+      <button className={`pt-sort-btn${open ? " open" : ""}`} onClick={() => setOpen(o => !o)}>
+        <i className="ti ti-arrows-sort" style={{ fontSize: 14 }} aria-hidden="true" />
+        {cur.label}
+        <i className={`ti ti-chevron-${open ? "up" : "down"}`} style={{ fontSize: 12 }} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="pt-sort-dd">
+          {SORTS.map(s => (
+            <div key={s.id} className={`pt-sort-opt${s.id === value ? " active" : ""}`} onClick={() => { onChange(s.id); setOpen(false); }}>
+              {s.label}
+              {s.id === value && <i className="ti ti-check" style={{ fontSize: 13 }} aria-hidden="true" />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [query, setQuery] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
+  const [sortId, setSortId] = useState("date_desc");
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try { const r = await window.storage.get(STORAGE_KEY); if (r) setItems(JSON.parse(r.value)); } catch {}
+      setReady(true);
+    })();
+  }, []);
+
+  async function persist(next) { setItems(next); await window.storage.set(STORAGE_KEY, JSON.stringify(next)); }
+
+  function openAdd() { setEditTarget(null); setForm(EMPTY_FORM); setShowForm(true); }
+  function openEdit(item) {
+    setEditTarget(item.id);
+    setForm({ name: item.name, category: item.category || "other", purchaseDate: item.purchaseDate, price: item.price, expiryDate: item.expiryDate || "", warrantyDate: item.warrantyDate || "", note: item.note || "" });
+    setShowForm(true);
+  }
+  async function handleSubmit() {
+    if (!form.name.trim() || !form.price) return;
+    if (editTarget) await persist(items.map(i => i.id === editTarget ? { ...i, ...form } : i));
+    else await persist([{ id: Date.now(), ...form }, ...items]);
+    setShowForm(false);
+  }
+
+  const displayed = useMemo(() => {
+    let arr = items;
+    const q = query.trim().toLowerCase();
+    if (q) arr = arr.filter(i => i.name.toLowerCase().includes(q) || (i.note && i.note.toLowerCase().includes(q)));
+    if (catFilter !== "all") arr = arr.filter(i => (i.category || "other") === catFilter);
+    return sortItems(arr, sortId);
+  }, [items, query, catFilter, sortId]);
+
+  const totalSpent = useMemo(() => items.reduce((s, i) => s + (Number(i.price) || 0), 0), [items]);
+  const alertCount = useMemo(() => items.filter(i => {
+    const ed = daysUntil(i.expiryDate), wd = daysUntil(i.warrantyDate);
+    return (ed !== null && ed <= 30) || (wd !== null && wd <= 30);
+  }).length, [items]);
+
+  const catCounts = useMemo(() => {
+    const m = {};
+    items.forEach(i => { const c = i.category || "other"; m[c] = (m[c] || 0) + 1; });
+    return m;
+  }, [items]);
+
+  if (!ready) return <div style={{ padding: 32, fontSize: 14, color: "#9B9590", fontFamily: "sans-serif" }}>載入中…</div>;
+  const spent = totalSpent >= 10000 ? `${(totalSpent / 10000).toFixed(1)}萬` : formatPrice(totalSpent);
+
+  return (
+    <>
+      <style>{css}</style>
+      <div className="pt">
+        <h2 className="sr-only">購買紀錄追蹤器</h2>
+        <div className="pt-hd">
+          <div className="pt-hd-bar" />
+          <div className="pt-hd-title">購買紀錄</div>
+          <div className="pt-hd-sub">記錄每一筆花費，掌握保固與到期</div>
+          <div className="pt-stats">
+            <div className="pt-stat">
+              <div className="pt-stat-n">{items.length}</div>
+              <div className="pt-stat-l">總筆數</div>
+            </div>
+            <div className="pt-stat">
+              <div className="pt-stat-n" style={{ fontSize: totalSpent >= 100000 ? 16 : 22 }}>NT${spent}</div>
+              <div className="pt-stat-l">總花費</div>
+            </div>
+            <div className="pt-stat">
+              <div className="pt-stat-n" style={{ color: alertCount > 0 ? "#D2A84E" : "#F2EDE2" }}>{alertCount}</div>
+              <div className="pt-stat-l">即將到期</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-body">
+          <AlertBlock items={items} />
+
+          <div className="pt-toolbar">
+            <div className="pt-srch">
+              <i className="ti ti-search pt-srch-ic" aria-hidden="true" />
+              <input placeholder="搜尋品名或備註…" value={query} onChange={e => setQuery(e.target.value)} />
+            </div>
+            <SortDropdown value={sortId} onChange={setSortId} />
+          </div>
+
+          {items.length > 0 && (
+            <div className="pt-cat-filter">
+              <button className={`pt-cf-btn${catFilter === "all" ? " active" : ""}`} onClick={() => setCatFilter("all")}>
+                全部 {items.length}
+              </button>
+              {CATEGORIES.filter(c => catCounts[c.id]).map(c => (
+                <button key={c.id} className={`pt-cf-btn${catFilter === c.id ? " active" : ""}`} onClick={() => setCatFilter(c.id)}>
+                  {c.icon} {c.label} {catCounts[c.id]}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button className="pt-addbtn" onClick={openAdd}>
+            <i className="ti ti-plus" style={{ fontSize: 15 }} aria-hidden="true" />
+            新增購買紀錄
+          </button>
+
+          {displayed.length === 0 ? (
+            <div className="pt-empty">
+              <div className="pt-empty-ic">📭</div>
+              <div className="pt-empty-t">{query || catFilter !== "all" ? "找不到符合的紀錄" : "還沒有紀錄，點擊上方按鈕開始新增"}</div>
+            </div>
+          ) : (
+            <div className="pt-list">
+              {displayed.map(item => <Card key={item.id} item={item} onEdit={openEdit} onDelete={id => persist(items.filter(i => i.id !== id))} />)}
+            </div>
+          )}
+        </div>
+
+        {showForm && <Sheet form={form} setForm={setForm} isEdit={!!editTarget} onClose={() => setShowForm(false)} onSubmit={handleSubmit} />}
+      </div>
+    </>
+  );
+}
