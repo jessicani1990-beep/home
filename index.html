@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>物品紀錄 App</title>
+    <title>家的組成 App</title>
     <style>
         :root {
             --bg-color: #F5F5F3;
@@ -17,116 +17,75 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         nav {
-            width: 100%;
-            background: var(--card-bg);
+            width: 100%; background: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
+            position: sticky; top: 0; z-index: 100;
+            display: flex; justify-content: space-around; padding: 15px 0;
         }
 
         nav button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 14px;
-            cursor: pointer;
-            letter-spacing: 1px;
-            padding: 10px;
+            background: none; border: none; color: var(--text-color);
+            font-size: 14px; cursor: pointer; letter-spacing: 1px; padding: 10px;
         }
 
         nav button.active {
-            color: var(--accent-color);
-            font-weight: bold;
+            color: var(--accent-color); font-weight: bold;
             border-bottom: 2px solid var(--accent-color);
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
+        .container { width: 100%; max-width: 500px; padding: 20px; box-sizing: border-box; }
         .page { display: none; }
         .page.active { display: block; }
 
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            background: var(--card-bg); border-radius: 4px; font-size: 14px; box-sizing: border-box;
         }
 
+        /* 篩選器樣式 */
+        .filter-section {
+            background: #EBEBE9; padding: 15px; border-radius: 8px; margin-bottom: 20px;
+        }
+        .date-range {
+            display: flex; align-items: center; gap: 10px; margin-top: 8px;
+        }
+        .date-range input { padding: 8px; font-size: 12px; }
+
         .photo-placeholder {
-            width: 100%;
-            height: 180px;
-            border: 1px dashed var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            background: #FAFAFA;
-            color: #999;
-            font-size: 13px;
+            width: 100%; height: 180px; border: 1px dashed var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; cursor: pointer; background: #FAFAFA; color: #999;
         }
 
         button.primary {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 15px;
-            margin-top: 10px;
+            background-color: var(--accent-color); color: white; border: none;
+            padding: 14px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 15px;
         }
 
         .item-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 8px;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 15px; margin-bottom: 12px; border-radius: 8px;
         }
 
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .item-name { font-weight: bold; font-size: 16px; }
         .item-category { font-size: 10px; background: #EEE; padding: 2px 8px; border-radius: 12px; }
         .item-info { font-size: 12px; margin-top: 4px; opacity: 0.8; }
+        
         .warning-box {
-            background: #FFF5F5;
-            border: 1px solid #FEB2B2;
-            color: #C53030;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 13px;
+            background: #FFF5F5; border: 1px solid #FEB2B2; color: #C53030;
+            padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;
         }
 
         .summary-text {
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--accent-color);
+            font-size: 13px; text-align: center; margin: 15px 0; color: var(--accent-color); font-weight: bold;
         }
     </style>
 </head>
@@ -142,7 +101,7 @@
     <!-- 頁面一：新增紀錄 -->
     <div id="add-page" class="page active">
         <div class="photo-placeholder" onclick="document.getElementById('photo-input').click()">
-            <span id="photo-text">📸 開啟相機或選取照片</span>
+            <span id="photo-text">📸 點擊開啟相機</span>
             <input type="file" id="photo-input" accept="image/*" style="display:none">
         </div>
         <div class="form-group"><label>名稱</label><input type="text" id="name"></div>
@@ -164,7 +123,16 @@
 
     <!-- 頁面二：搜尋分析 -->
     <div id="search-page" class="page">
-        <input type="text" id="searchInput" placeholder="搜尋關鍵字..." oninput="renderItems()" style="margin-bottom:15px">
+        <div class="filter-section">
+            <label style="font-weight:bold; color:var(--text-color)">區間篩選與搜尋</label>
+            <input type="text" id="searchInput" placeholder="搜尋名稱..." oninput="renderItems()" style="margin: 10px 0;">
+            <div class="date-range">
+                <input type="date" id="filterStart" onchange="renderItems()">
+                <span style="font-size:12px">至</span>
+                <input type="date" id="filterEnd" onchange="renderItems()">
+            </div>
+        </div>
+        
         <div id="expiry-alerts"></div>
         <div id="stats-area" class="summary-text"></div>
         <div id="item-list"></div>
@@ -172,7 +140,6 @@
 
     <!-- 頁面三：備份 -->
     <div id="backup-page" class="page" style="text-align:center; padding-top:40px;">
-        <p style="font-size:14px; opacity:0.7;">資料僅儲存於您的瀏覽器中</p>
         <p id="lastBackupDisplay" style="font-size:13px; margin-bottom:30px;">上次備份：無</p>
         <button class="primary" onclick="downloadBackup()">下載備份 (.json)</button>
         <button class="primary" style="background:#B2BEBF; margin-top:15px" onclick="document.getElementById('import-input').click()">讀取備份檔案</button>
@@ -181,9 +148,15 @@
 </div>
 
 <script>
-    // 初始化資料
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
-    document.getElementById('buyDate').valueAsDate = new Date();
+    
+    // 初始化日期：設定篩選區間為當年 1/1 到今天
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yearStartStr = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+    
+    document.getElementById('buyDate').value = todayStr;
+    document.getElementById('filterStart').value = yearStartStr;
+    document.getElementById('filterEnd').value = todayStr;
 
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -191,7 +164,6 @@
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-' + pageId.split('-')[0]).classList.add('active');
         if(pageId === 'search-page') renderItems();
-        if(pageId === 'backup-page') updateBackupDateDisplay();
     }
 
     function saveItem() {
@@ -212,24 +184,19 @@
         items.push(newItem);
         localStorage.setItem('my_items', JSON.stringify(items));
         alert('儲存成功');
-        clearForm();
         showPage('search-page');
-    }
-
-    function clearForm() {
-        document.getElementById('name').value = '';
-        document.getElementById('price').value = '';
-        document.getElementById('note').value = '';
-        document.getElementById('expiryDate').value = '';
-        document.getElementById('warrantyDate').value = '';
     }
 
     function renderItems() {
         const list = document.getElementById('item-list');
         const alerts = document.getElementById('expiry-alerts');
         const stats = document.getElementById('stats-area');
-        const query = document.getElementById('searchInput').value.toLowerCase();
         
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const startDate = new Date(document.getElementById('filterStart').value);
+        const endDate = new Date(document.getElementById('filterEnd').value);
+        endDate.setHours(23, 59, 59); // 確保包含當天
+
         list.innerHTML = '';
         alerts.innerHTML = '';
         
@@ -237,31 +204,27 @@
         const thirtyDaysLater = new Date();
         thirtyDaysLater.setDate(today.getDate() + 30);
 
-        let totalAmount = 0;
-        const currentYearStart = new Date(new Date().getFullYear(), 0, 1);
+        let rangeTotal = 0;
 
-        // 篩選與警示邏輯
+        // 1. 先處理即將到期的警示 (不受日期區間篩選影響，因為那是未來的提醒)
         items.forEach(item => {
-            const buyD = new Date(item.buyDate);
-            // 統計今年起的金額
-            if (buyD >= currentYearStart && buyD <= today) {
-                totalAmount += parseFloat(item.price);
-            }
-
-            // 檢查 30 天內到期或保固[cite: 2]
             const expD = item.expiryDate ? new Date(item.expiryDate) : null;
             const warD = item.warrantyDate ? new Date(item.warrantyDate) : null;
-
             if((expD && expD <= thirtyDaysLater && expD >= today) || (warD && warD <= thirtyDaysLater && warD >= today)) {
-                alerts.innerHTML += `<div class="warning-box">📌 即將到期：${item.name} (${item.expiryDate || item.warrantyDate})</div>`;
+                alerts.innerHTML += `<div class="warning-box">⚠️ 30天內到期：${item.name} (${item.expiryDate || item.warrantyDate})</div>`;
             }
         });
 
-        stats.innerText = `今年累計支出 (01/01 - 今日)：$${totalAmount.toLocaleString()}`;
+        // 2. 根據區間與關鍵字篩選顯示清單
+        const filtered = items.filter(item => {
+            const buyD = new Date(item.buyDate);
+            const matchName = item.name.toLowerCase().includes(query);
+            const matchDate = buyD >= startDate && buyD <= endDate;
+            return matchName && matchDate;
+        });
 
-        // 搜尋過濾
-        const filtered = items.filter(i => i.name.toLowerCase().includes(query));
         filtered.sort((a,b) => new Date(b.buyDate) - new Date(a.buyDate)).forEach(item => {
+            rangeTotal += parseFloat(item.price);
             list.innerHTML += `
                 <div class="item-card">
                     <div class="item-header">
@@ -270,23 +233,22 @@
                     </div>
                     <div class="item-info">📅 購買日：${item.buyDate}</div>
                     <div class="item-info">💰 金額：$${parseFloat(item.price).toLocaleString()}</div>
-                    ${item.warrantyDate ? `<div class="item-info" style="color:#8A9A5B">🛡️ 保固至：${item.warrantyDate}</div>` : ''}
-                    ${item.note ? `<div class="item-info" style="font-style:italic; border-top:1px solid #f0f0f0; margin-top:8px; padding-top:4px;">${item.note}</div>` : ''}
-                </div>
-            `;
+                    ${item.warrantyDate ? `<div class="item-info" style="color:var(--accent-color)">🛡️ 保固至：${item.warrantyDate}</div>` : ''}
+                </div>`;
         });
+
+        stats.innerText = `選定區間支出總計：$${rangeTotal.toLocaleString()}`;
     }
 
     function downloadBackup() {
         const dataStr = JSON.stringify(items, null, 2);
         const blob = new Blob([dataStr], {type: "application/json"});
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `物品備份_${new Date().toISOString().slice(0,10)}.json`;
-        link.click();
+        const a = document.createElement('a');
+        a.href = url; a.download = `備份_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
         localStorage.setItem('last_backup', new Date().toLocaleString());
-        updateBackupDateDisplay();
+        document.getElementById('lastBackupDisplay').innerText = `上次備份：${localStorage.getItem('last_backup')}`;
     }
 
     function importBackup(event) {
@@ -297,15 +259,11 @@
             try {
                 items = JSON.parse(e.target.result);
                 localStorage.setItem('my_items', JSON.stringify(items));
-                alert('匯入完成！');
+                alert('匯入完成');
                 renderItems();
-            } catch(err) { alert('檔案格式不正確'); }
+            } catch(err) { alert('格式錯誤'); }
         };
         reader.readAsText(file);
-    }
-
-    function updateBackupDateDisplay() {
-        document.getElementById('lastBackupDisplay').innerText = `上次備份：${localStorage.getItem('last_backup') || '尚未備份'}`;
     }
 </script>
 </body>
