@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>物品紀錄 App</title>
+    <title>HOME ITEMS App</title>
     <style>
         :root {
             --bg-color: #F5F5F3;
@@ -50,6 +50,16 @@
             background: var(--card-bg); border-radius: 4px; font-size: 14px; box-sizing: border-box;
         }
 
+        /* 照片區域樣式 */
+        .photo-container {
+            width: 100%; height: 200px; border: 1px dashed var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; cursor: pointer; background: #FAFAFA; 
+            border-radius: 8px; overflow: hidden; position: relative;
+        }
+        .photo-container img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-placeholder { color: #999; font-size: 14px; text-align: center; }
+
         .filter-section { background: #EBEBE9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .filter-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .date-range { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
@@ -64,6 +74,7 @@
             background: var(--card-bg); border: 1px solid var(--border-color);
             padding: 15px; margin-bottom: 12px; border-radius: 8px; position: relative;
         }
+        .card-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
 
         .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .item-name { font-weight: bold; font-size: 16px; }
@@ -73,17 +84,14 @@
         .card-actions {
             display: flex; justify-content: flex-end; gap: 20px; margin-top: 10px; border-top: 1px solid #f0f0f0; padding-top: 10px;
         }
-        .card-actions button {
-            background: none; border: none; font-size: 12px; cursor: pointer; color: #999;
-        }
-        .card-actions .btn-edit:hover { color: var(--accent-color); text-decoration: underline; }
-        .card-actions .btn-del:hover { color: var(--danger-color); text-decoration: underline; }
+        .card-actions button { background: none; border: none; font-size: 12px; cursor: pointer; color: #999; }
+        .card-actions .btn-edit:hover { color: var(--accent-color); }
+        .card-actions .btn-del:hover { color: var(--danger-color); }
 
         .warning-box {
             background: #FFF5F5; border: 1px solid #FEB2B2; color: #C53030;
             padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;
         }
-
         .summary-text { font-size: 13px; text-align: center; margin: 15px 0; color: var(--accent-color); font-weight: bold; }
     </style>
 </head>
@@ -99,8 +107,16 @@
     <!-- 頁面一：新增/編輯 -->
     <div id="add-page" class="page active">
         <h3 id="form-title" style="font-size: 16px; margin-bottom: 20px; font-weight: normal; text-align: center;">新增物品紀錄</h3>
+        
+        <!-- 照片拍攝區域 -->
+        <div class="photo-container" onclick="document.getElementById('photoInput').click()">
+            <div id="photoPlaceholder" class="photo-placeholder">📸 點擊拍照或上傳</div>
+            <img id="photoPreview" style="display:none">
+            <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+        </div>
+
         <input type="hidden" id="edit-id">
-        <div class="form-group"><label>名稱</label><input type="text" id="name" placeholder="請輸入物品名稱"></div>
+        <div class="form-group"><label>名稱</label><input type="text" id="name"></div>
         <div class="form-group">
             <label>分類</label>
             <select id="category">
@@ -110,10 +126,10 @@
             </select>
         </div>
         <div class="form-group"><label>購買日期</label><input type="date" id="buyDate"></div>
-        <div class="form-group"><label>金額</label><input type="number" id="price" placeholder="請輸入金額"></div>
+        <div class="form-group"><label>金額</label><input type="number" id="price"></div>
         <div class="form-group"><label>到期日 (選填)</label><input type="date" id="expiryDate"></div>
         <div class="form-group"><label>保固到期日 (選填)</label><input type="date" id="warrantyDate"></div>
-        <div class="form-group"><label>備註 (選填)</label><textarea id="note" rows="2" placeholder="相關備註..."></textarea></div>
+        <div class="form-group"><label>備註 (選填)</label><textarea id="note" rows="2"></textarea></div>
         <button class="primary" id="save-btn" onclick="saveItem()">儲存紀錄</button>
         <button id="cancel-edit" style="display:none; background:none; border:none; width:100%; margin-top:10px; font-size:12px; cursor:pointer; color:#999;" onclick="clearForm(); showPage('search-page');">取消編輯</button>
     </div>
@@ -122,18 +138,17 @@
     <div id="search-page" class="page">
         <div class="filter-section">
             <div class="filter-row">
-                <!-- 分類搜尋選單 -->
-                <select id="filterCategory" onchange="renderItems()" style="flex: 1; padding: 8px; font-size: 13px;">
+                <select id="filterCategory" onchange="renderItems()" style="flex: 1;">
                     <option value="all">所有分類</option>
                     <option>食品飲料</option><option>3C</option><option>家電</option>
                     <option>家具軟裝</option><option>工具文具</option><option>交通</option>
                     <option>健康美容</option><option>視聽圖書</option><option>衣物配件</option><option>其他</option>
                 </select>
-                <input type="text" id="searchInput" placeholder="搜尋名稱..." oninput="renderItems()" style="flex: 2; padding: 8px; font-size: 13px;">
+                <input type="text" id="searchInput" placeholder="搜尋名稱..." oninput="renderItems()" style="flex: 2;">
             </div>
             <div class="date-range">
                 <input type="date" id="filterStart" onchange="renderItems()">
-                <span style="font-size:12px">至</span>
+                <span>至</span>
                 <input type="date" id="filterEnd" onchange="renderItems()">
             </div>
         </div>
@@ -153,20 +168,33 @@
 
 <script>
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
-    
+    let currentPhotoBase64 = ""; // 儲存當前照片的 Base64 碼
+
     function resetFilters() {
         const now = new Date();
-        const currentYear = now.getFullYear();
         const todayStr = now.toLocaleDateString('en-CA'); 
-        const yearStartStr = `${currentYear}-01-01`;
-        
+        const yearStartStr = `${now.getFullYear()}-01-01`;
         document.getElementById('buyDate').value = todayStr;
         document.getElementById('filterStart').value = yearStartStr;
         document.getElementById('filterEnd').value = todayStr;
-        if(document.getElementById('filterCategory')) document.getElementById('filterCategory').value = 'all';
     }
 
     resetFilters();
+
+    // 預覽照片並轉為 Base64[cite: 2]
+    function previewPhoto(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentPhotoBase64 = e.target.result;
+                document.getElementById('photoPreview').src = currentPhotoBase64;
+                document.getElementById('photoPreview').style.display = 'block';
+                document.getElementById('photoPlaceholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -190,7 +218,8 @@
             price: document.getElementById('price').value || 0,
             expiryDate: document.getElementById('expiryDate').value,
             warrantyDate: document.getElementById('warrantyDate').value,
-            note: document.getElementById('note').value
+            note: document.getElementById('note').value,
+            photo: currentPhotoBase64 // 儲存照片資料[cite: 2]
         };
 
         if(editId) {
@@ -201,7 +230,7 @@
         }
 
         localStorage.setItem('my_items', JSON.stringify(items));
-        alert(editId ? '修改成功' : '儲存成功');
+        alert('儲存成功');
         clearForm();
         showPage('search-page');
     }
@@ -213,6 +242,10 @@
         document.getElementById('note').value = '';
         document.getElementById('expiryDate').value = '';
         document.getElementById('warrantyDate').value = '';
+        document.getElementById('photoPreview').src = '';
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('photoPlaceholder').style.display = 'block';
+        currentPhotoBase64 = "";
         document.getElementById('form-title').innerText = '新增物品紀錄';
         document.getElementById('save-btn').innerText = '儲存紀錄';
         document.getElementById('cancel-edit').style.display = 'none';
@@ -230,6 +263,14 @@
         document.getElementById('expiryDate').value = item.expiryDate;
         document.getElementById('warrantyDate').value = item.warrantyDate;
         document.getElementById('note').value = item.note;
+        
+        if(item.photo) {
+            currentPhotoBase64 = item.photo;
+            document.getElementById('photoPreview').src = item.photo;
+            document.getElementById('photoPreview').style.display = 'block';
+            document.getElementById('photoPlaceholder').style.display = 'none';
+        }
+
         document.getElementById('form-title').innerText = '編輯物品資料';
         document.getElementById('save-btn').innerText = '確認更新';
         document.getElementById('cancel-edit').style.display = 'block';
@@ -237,7 +278,7 @@
     }
 
     function deleteItem(id) {
-        if(confirm('確定要永久刪除此項紀錄嗎？')) {
+        if(confirm('確定要刪除嗎？')) {
             items = items.filter(i => i.id !== id);
             localStorage.setItem('my_items', JSON.stringify(items));
             renderItems();
@@ -246,30 +287,15 @@
 
     function renderItems() {
         const list = document.getElementById('item-list');
-        const alerts = document.getElementById('expiry-alerts');
         const stats = document.getElementById('stats-area');
-        
         const query = document.getElementById('searchInput').value.toLowerCase();
-        const categoryFilter = document.getElementById('filterCategory').value; // 分類篩選值[cite: 2]
+        const categoryFilter = document.getElementById('filterCategory').value;
         const startVal = document.getElementById('filterStart').value;
         const endVal = document.getElementById('filterEnd').value;
         
-        list.innerHTML = ''; alerts.innerHTML = '';
-        const today = new Date(); today.setHours(0,0,0,0);
-        const thirtyDaysLater = new Date(); thirtyDaysLater.setDate(today.getDate() + 30);
-
+        list.innerHTML = '';
         let rangeTotal = 0;
 
-        // 警示邏輯[cite: 2]
-        items.forEach(item => {
-            const expD = item.expiryDate ? new Date(item.expiryDate) : null;
-            const warD = item.warrantyDate ? new Date(item.warrantyDate) : null;
-            if((expD && expD <= thirtyDaysLater && expD >= today) || (warD && warD <= thirtyDaysLater && warD >= today)) {
-                alerts.innerHTML += `<div class="warning-box">🔔 即將到期：${item.name} (${item.expiryDate || item.warrantyDate})</div>`;
-            }
-        });
-
-        // 綜合篩選：關鍵字 + 分類 + 日期區間
         const filtered = items.filter(item => {
             const matchName = item.name.toLowerCase().includes(query);
             const matchCategory = categoryFilter === 'all' || item.category === categoryFilter;
@@ -281,13 +307,12 @@
             rangeTotal += parseFloat(item.price);
             list.innerHTML += `
                 <div class="item-card">
+                    ${item.photo ? `<img src="${item.photo}" class="card-img">` : ''}
                     <div class="item-header">
                         <span class="item-name">${item.name}</span>
                         <span class="item-category">${item.category}</span>
                     </div>
-                    <div class="item-info">📅 購買日：${item.buyDate}</div>
-                    <div class="item-info">💰 金額：$${parseFloat(item.price).toLocaleString()}</div>
-                    ${item.warrantyDate ? `<div class="item-info" style="color:var(--accent-color)">🛡️ 保固：${item.warrantyDate}</div>` : ''}
+                    <div class="item-info">📅 ${item.buyDate} | 💰 $${parseFloat(item.price).toLocaleString()}</div>
                     <div class="card-actions">
                         <button class="btn-edit" onclick="editItem(${item.id})">編輯</button>
                         <button class="btn-del" onclick="deleteItem(${item.id})">刪除</button>
@@ -314,14 +339,11 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const imported = JSON.parse(e.target.result);
-                if(Array.isArray(imported)) {
-                    items = imported;
-                    localStorage.setItem('my_items', JSON.stringify(items));
-                    alert('備份匯入完成');
-                    renderItems();
-                }
-            } catch(err) { alert('檔案格式不正確'); }
+                items = JSON.parse(e.target.result);
+                localStorage.setItem('my_items', JSON.stringify(items));
+                alert('匯入成功');
+                renderItems();
+            } catch(err) { alert('檔案格式錯誤'); }
         };
         reader.readAsText(file);
     }
