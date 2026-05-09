@@ -1,12 +1,22 @@
-[
-  {
-    "id": 1,
-    "name": "Leica M6",
-    "category": "3C",
-    "buyDate": "2026-01-15",
-    "price": "85000",
-    "expiryDate": "",
-    "warrantyDate": "2027-01-15",
-    "note": "經典底片相機"
-  }
-]
+{
+  "short_name": "HI",
+  "name": "HOME ITEMS App",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#8A9A5B",
+  "background_color": "#F5F5F3"
+}
