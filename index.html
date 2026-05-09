@@ -1,235 +1,3 @@
-Gemini
-物品管理App設計與規劃
-新的對話
-我的內容
-筆記本
-新增筆記本
-Gem
-
-Diamond
-
-King
-對話
-❣IG 文案生成助手❣
-釘選的對話
-GitHub PWA 生活紀錄 App
-釘選的對話
-❣競標商品文案助手❣
-釘選的對話
-❣專屬美容師❣
-釘選的對話
-❣官網專屬文案助手❣
-釘選的對話
-設計雙人記帳 App
-釘選的對話
-用藥紀錄app生成
-釘選的對話
-❣我的萬事通
-釘選的對話
-❣零售庫存表設計指南❣
-釘選的對話
-❣專屬營養師❣
-釘選的對話
-❣蝦皮定價策略與成本分析❣
-釘選的對話
-❣Français家教❣
-釘選的對話
-物品管理App設計與規劃
-物品管理 App 設計與開發
-生成一個icon，app名稱叫做NH HOME
-六花之露酒糖口味介紹
-掃地機器人未連結回覆
-Claude 免費與付費版比較
-查詢老家價值的方法
-識別螢幕桌布的城市地點
-家用記帳app，需要一個icon，復古文青風，白色背景，正方形
-剛我把這張圖的背景變成乾淨的白色背景，沒有角落的顏色
-江戶川亂步作品列表
-狗狗疹子未癒，持續用藥探因
-計算機 ADD2 功能說明
-
-設定與說明
-和 Gemini 的對話
-我想寫一個app是可以記錄我買的東西，什麼時候買的，花了多少錢，什麼時候過期(選填)，保固到什麼時候(選填)
-
-頁面一:紀錄頁:名稱/分類/購買日期/金額/到期日(選填)/保固到期日(選填)/備註(選填)/如果可以開啟相機加入照片(或是發票照片)會更好(選填)
-
-分類包括:食品飲料/3C/家電/家具軟裝/工具文具/交通/健康美容/視聽圖書/衣物配件/其他
-
-
-
-
-
-頁面二:
-
-搜尋分析頁:
-
-1.可依年月日篩選，顯示的區間設定在當年一月開始至當天
-
-2.顯示30天內即將到期或保固即將到期的東西
-
-3.可以用關鍵字搜尋，假設我想知道電腦什麼時候買的，保固到什麼時候，我可以搜尋的到。
-
-
-
-頁面三:備份頁
-
-可以下載與上傳備份檔案，並顯示上次備份日期
-
-
-
-整體風格簡約精緻，文青風格配色，淺色為主，不要有花俏的icon
-
-您好，現在是 2026 年 5 月 9 日，週六晚上 11 點 43 分。
-
-開發一款專屬於您的物品管理 App 是一個非常實用的想法，特別是對於經營底片相機事業的人士來說，細膩的紀錄與視覺呈現至關重要。這款 App 的核心邏輯在於「資產數位化」與「時序追蹤」。
-
-以下為您規劃的 App 架構與設計方案：
-
-🎨 視覺風格定義：【晨曦微光】
-配色方案：
-
-主色：煙燻亞麻色 (#F5F5F3)
-
-強調色：鼠尾草綠 (#8A9A5B) 或 莫蘭迪藍 (#B2BEBF)
-
-文字：炭灰色 (#4A4A4A)
-
-介面特點： 大面積留白、細黑體字（如 Noto Sans TC Thin/Light）、極簡線條框線，捨棄 3D 陰影，改用平面化（Flat Design）層次。
-
-📱 頁面詳細規格
-頁面一：新增紀錄 (Entry)
-這是一個垂直捲動的純淨清單。
-
-相機整合： 置頂處設有一個方形的「+」灰線框，點擊後啟動相機。您可以拍攝物品或發票，照片會以拍立得比例（1:1）微縮顯示。
-
-輸入欄位：
-
-名稱： 自動聚焦輸入。
-
-分類： 滾輪式選擇器（包含您提到的 10 類）。
-
-日期選擇： 預設為當天。
-
-金額： 僅限數字鍵盤。
-
-選填區塊： 使用可折疊的「更多資訊」標籤，內含：
-
-到期日 / 保固到期日：點擊後彈出簡約日曆。
-
-備註：多行純文字區域。
-
-頁面二：搜尋與分析 (Insights)
-此頁面分為三個視圖區塊，確保資訊處理的邏輯清晰。
-
-動態提醒區 (Focus)： 置頂橫向滑動卡片。
-
-顯示「30天內即將到期」之項目。若無項目，則顯示一句文青語錄或「目前無即將到期物資」。
-
-時序清單 (Timeline)：
-
-預設顯示 2026/01/01→Today 的所有花費。
-
-底部自動加總顯示：「此區間總支出：NT$XXXX」。
-
-智能搜尋 (Search)：
-
-頂部常駐搜尋列。輸入「電腦」，下方即時過濾出所有相關紀錄，並特別加深顯示「保固日期」字樣。
-
-頁面三：資料守護 (Backup)
-狀態顯示： 中央顯示大大的「上次備份：2026-05-09 23:40」。
-
-互動按鈕：
-
-「匯出 JSON / CSV」：適合後續進 Excel 分析。
-
-「雲端同步」：與 iCloud 或 Google Drive 連結。
-
-上傳恢復： 提供「回復歷史存檔」功能，並設有確認視窗以防覆蓋現有資料。
-
-🛠 建議開發技術棧 (Internal Logic)
-如果您考慮委託開發或自行研究，建議架構如下：
-
-組件	推薦技術	理由
-開發框架	Flutter 或 React Native	跨平台，且容易達成您要求的簡約 UI 風格。
-資料庫	SQLite (Local)	物品紀錄屬私密資料，本地存儲速度快且安全。
-圖片存儲	File System	將照片壓縮後存在 App 私有目錄，避免佔用手機相簿空間。
-備份機制	JSON 序列化	輕量化，易於在不同設備間傳輸。
-內部事實查核 (Internal Fact Check)
-相機功能： 現代開發框架均支援調用 Camera API 進行拍照與相簿選取。
-
-篩選邏輯： 資料庫查詢語法可設定為 WHERE purchase_date BETWEEN '2026-01-01' AND date('now')。
-
-保固追蹤： 邏輯為 warranty_date - current_date <= 30。
-
-這款 App 將能協助您精確管理底片相機自營業務中的設備資產，同時兼顧生活中的消費美學。您希望優先針對「拍照功能」還是「資料分析邏輯」進行更深入的介面流程探討？
-
-直接幫我生成html+json+js檔吧
-
-您的 App 雛型檔案已生成。
-
-這組檔案包含了一個完整的、具備您所要求的「文青風格」介面以及所有功能的網頁應用程式（WebApp）。您可以直接將這些檔案保存在同一個資料夾中，並使用瀏覽器開啟 index.html 即可運行。
-
-檔案說明：
-index.html：包含頁面結構（HTML）與您要求的簡約風格設計（CSS）。
-
-script.js：包含所有核心邏輯，如：
-
-資料儲存：使用瀏覽器的 localStorage，重新整理頁面資料也不會消失。
-
-自動篩選：搜尋頁面會自動過濾出 30 天內即將過期的項目。
-
-備份功能：可將所有資料下載成一個 .json 檔，並支援重新上傳復原。
-
-data_sample.json：這是一個範例格式檔案，供您參考備份檔的結構。
-
-「HTML」圖示
- index 
-HTML
-「JS」圖示
- script 
-JS
-「JSON」圖示
- data_sample 
-JSON
-使用建議：
-文青風格設計：我使用了 煙燻亞麻 (#F5F5F3) 作為背景，並以 鼠尾草綠 (#8A9A5B) 作為按鈕色，搭配大面積留白與細體字。
-
-搜尋分析：在「搜尋分析」頁面，系統會自動在最上方列出未來 30 天內即將到期的物品，並以紅字警示。
-
-關於照片功能：由於純 HTML/JS 檔受限於安全性，無法直接將「照片文件」存入本地資料庫（會導致檔案過大），目前的代碼預留了觸發相機的介面。若未來要完整開發，建議搭配雲端儲存空间。
-
-「搜尋分析頁面看起來不能按
-
-您觀察得很敏銳，那是因為該頁面採用了「自動即時呈現」的設計邏輯，而非傳統的點擊按鈕式操作。
-
-為了符合您要求的「簡約精緻」風格，我將搜尋分析頁面設計為動態偵測。以下是該頁面的運作方式說明：  
-+1
-
-1. 為什麼「不能按」？
-即時搜尋：頂部的搜尋框不需要按「確認」鍵。當您在框內輸入「電腦」時，下方的清單會隨著您的輸入即時過濾並顯示結果。  
-+2
-
-自動篩選區間：系統在您切換到該分頁時，會自動執行程式邏輯，抓取 2026/01/01 至今天的所有資料進行加總與排序，不需手動設定。  
-+1
-
-2. 分析邏輯是如何運作的？
-30 天到期警示：程式碼會自動比對今天的日期（2026/05/09）與您填寫的「到期日」或「保固日」。只要差距在 30 天內，該項目就會自動出現在頁面最上方的紅色警示區。  
-+2
-
-時序排序：所有紀錄會自動依照「購買日期」由新到舊排序，讓您一眼就能看到最近買了什麼。  
-
-3. 如何手動觸發更新？
-如果您匯入了新的備份檔或新增了紀錄，您可以點擊導覽列的「搜尋分析」按鈕，這會觸發 renderItems() 函數，重新整理頁面上的所有資訊。  
-
-如果您希望增加一個明確的「套用篩選」或「切換年份」的按鈕，我可以為您修改 index.html 加入更明顯的互動元件。您是否需要我加入一個可以自行調整「開始與結束日期」的選單？  
-
-
-
-
-
-Gemini 是 AI，有時可能會出錯。
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -256,7 +24,6 @@ Gemini 是 AI，有時可能會出錯。
             align-items: center;
         }
 
-        /* Navigation */
         nav {
             width: 100%;
             background: var(--card-bg);
@@ -276,11 +43,13 @@ Gemini 是 AI，有時可能會出錯。
             font-size: 14px;
             cursor: pointer;
             letter-spacing: 1px;
+            padding: 10px;
         }
 
         nav button.active {
             color: var(--accent-color);
             font-weight: bold;
+            border-bottom: 2px solid var(--accent-color);
         }
 
         .container {
@@ -293,12 +62,11 @@ Gemini 是 AI，有時可能會出錯。
         .page { display: none; }
         .page.active { display: block; }
 
-        /* Form Styling */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
         input, select, textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
             border-radius: 4px;
@@ -308,7 +76,7 @@ Gemini 是 AI，有時可能會出錯。
 
         .photo-placeholder {
             width: 100%;
-            height: 200px;
+            height: 180px;
             border: 1px dashed var(--border-color);
             display: flex;
             align-items: center;
@@ -316,13 +84,15 @@ Gemini 是 AI，有時可能會出錯。
             margin-bottom: 20px;
             cursor: pointer;
             background: #FAFAFA;
+            color: #999;
+            font-size: 13px;
         }
 
         button.primary {
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             width: 100%;
             border-radius: 4px;
             cursor: pointer;
@@ -330,107 +100,213 @@ Gemini 是 AI，有時可能會出錯。
             margin-top: 10px;
         }
 
-        /* List Styling */
         .item-card {
             background: var(--card-bg);
-            border-bottom: 1px solid #EEE;
+            border: 1px solid var(--border-color);
             padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
+            margin-bottom: 12px;
+            border-radius: 8px;
         }
 
-        .item-header { display: flex; justify-content: space-between; align-items: center; }
-        .item-name { font-weight: bold; }
-        .item-category { font-size: 11px; background: #EEE; padding: 2px 6px; border-radius: 10px; }
-        .item-info { font-size: 12px; margin-top: 5px; opacity: 0.7; }
-        .warning { color: #C0392B; font-weight: bold; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .item-name { font-weight: bold; font-size: 16px; }
+        .item-category { font-size: 10px; background: #EEE; padding: 2px 8px; border-radius: 12px; }
+        .item-info { font-size: 12px; margin-top: 4px; opacity: 0.8; }
+        .warning-box {
+            background: #FFF5F5;
+            border: 1px solid #FEB2B2;
+            color: #C53030;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
 
-        /* Backup Page */
-        .backup-status { text-align: center; margin-top: 40px; }
-        .backup-date { font-size: 13px; margin: 10px 0 30px 0; }
+        .summary-text {
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
 
 <nav>
-    <button onclick="showPage('add-page')" id="btn-add">記錄</button>
+    <button onclick="showPage('add-page')" id="btn-add" class="active">記錄</button>
     <button onclick="showPage('search-page')" id="btn-search">搜尋分析</button>
     <button onclick="showPage('backup-page')" id="btn-backup">備份</button>
 </nav>
 
 <div class="container">
-    <!-- Page 1: Add Item -->
+    <!-- 頁面一：新增紀錄 -->
     <div id="add-page" class="page active">
         <div class="photo-placeholder" onclick="document.getElementById('photo-input').click()">
-            <span id="photo-text">點擊開啟相機/發票照片</span>
+            <span id="photo-text">📸 開啟相機或選取照片</span>
             <input type="file" id="photo-input" accept="image/*" style="display:none">
         </div>
-        <div class="form-group">
-            <label>名稱</label>
-            <input type="text" id="name" placeholder="例如：Leica M6">
-        </div>
+        <div class="form-group"><label>名稱</label><input type="text" id="name"></div>
         <div class="form-group">
             <label>分類</label>
             <select id="category">
-                <option>食品飲料</option>
-                <option>3C</option>
-                <option>家電</option>
-                <option>家具軟裝</option>
-                <option>工具文具</option>
-                <option>交通</option>
-                <option>健康美容</option>
-                <option>視聽圖書</option>
-                <option>衣物配件</option>
-                <option>其他</option>
+                <option>食品飲料</option><option>3C</option><option>家電</option>
+                <option>家具軟裝</option><option>工具文具</option><option>交通</option>
+                <option>健康美容</option><option>視聽圖書</option><option>衣物配件</option><option>其他</option>
             </select>
         </div>
-        <div class="form-group">
-            <label>購買日期</label>
-            <input type="date" id="buyDate">
-        </div>
-        <div class="form-group">
-            <label>金額</label>
-            <input type="number" id="price" placeholder="0.00">
-        </div>
-        <div class="form-group">
-            <label>到期日 (選填)</label>
-            <input type="date" id="expiryDate">
-        </div>
-        <div class="form-group">
-            <label>保固到期日 (選填)</label>
-            <input type="date" id="warrantyDate">
-        </div>
-        <div class="form-group">
-            <label>備註 (選填)</label>
-            <textarea id="note" rows="3"></textarea>
-        </div>
+        <div class="form-group"><label>購買日期</label><input type="date" id="buyDate"></div>
+        <div class="form-group"><label>金額</label><input type="number" id="price"></div>
+        <div class="form-group"><label>到期日 (選填)</label><input type="date" id="expiryDate"></div>
+        <div class="form-group"><label>保固到期日 (選填)</label><input type="date" id="warrantyDate"></div>
+        <div class="form-group"><label>備註 (選填)</label><textarea id="note" rows="2"></textarea></div>
         <button class="primary" onclick="saveItem()">儲存紀錄</button>
     </div>
 
-    <!-- Page 2: Search & Analysis -->
+    <!-- 頁面二：搜尋分析 -->
     <div id="search-page" class="page">
-        <div class="form-group">
-            <input type="text" id="searchInput" placeholder="關鍵字搜尋..." oninput="renderItems()">
-        </div>
+        <input type="text" id="searchInput" placeholder="搜尋關鍵字..." oninput="renderItems()" style="margin-bottom:15px">
         <div id="expiry-alerts"></div>
-        <hr style="border: 0; border-top: 1px solid #DDD; margin: 20px 0;">
+        <div id="stats-area" class="summary-text"></div>
         <div id="item-list"></div>
     </div>
 
-    <!-- Page 3: Backup -->
-    <div id="backup-page" class="page">
-        <div class="backup-status">
-            <p>資料存儲於本地瀏覽器</p>
-            <div class="backup-date" id="lastBackupDisplay">上次備份：無</div>
-            <button class="primary" style="background:#4A4A4A" onclick="downloadBackup()">下載備份 (.json)</button>
-            <button class="primary" style="background:#B2BEBF; margin-top:20px" onclick="document.getElementById('import-input').click()">上傳備份檔案</button>
-            <input type="file" id="import-input" accept=".json" style="display:none" onchange="importBackup(event)">
-        </div>
+    <!-- 頁面三：備份 -->
+    <div id="backup-page" class="page" style="text-align:center; padding-top:40px;">
+        <p style="font-size:14px; opacity:0.7;">資料僅儲存於您的瀏覽器中</p>
+        <p id="lastBackupDisplay" style="font-size:13px; margin-bottom:30px;">上次備份：無</p>
+        <button class="primary" onclick="downloadBackup()">下載備份 (.json)</button>
+        <button class="primary" style="background:#B2BEBF; margin-top:15px" onclick="document.getElementById('import-input').click()">讀取備份檔案</button>
+        <input type="file" id="import-input" accept=".json" style="display:none" onchange="importBackup(event)">
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+    // 初始化資料
+    let items = JSON.parse(localStorage.getItem('my_items')) || [];
+    document.getElementById('buyDate').valueAsDate = new Date();
+
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + pageId.split('-')[0]).classList.add('active');
+        if(pageId === 'search-page') renderItems();
+        if(pageId === 'backup-page') updateBackupDateDisplay();
+    }
+
+    function saveItem() {
+        const name = document.getElementById('name').value;
+        if(!name) { alert('請輸入名稱'); return; }
+
+        const newItem = {
+            id: Date.now(),
+            name: name,
+            category: document.getElementById('category').value,
+            buyDate: document.getElementById('buyDate').value,
+            price: document.getElementById('price').value || 0,
+            expiryDate: document.getElementById('expiryDate').value,
+            warrantyDate: document.getElementById('warrantyDate').value,
+            note: document.getElementById('note').value
+        };
+
+        items.push(newItem);
+        localStorage.setItem('my_items', JSON.stringify(items));
+        alert('儲存成功');
+        clearForm();
+        showPage('search-page');
+    }
+
+    function clearForm() {
+        document.getElementById('name').value = '';
+        document.getElementById('price').value = '';
+        document.getElementById('note').value = '';
+        document.getElementById('expiryDate').value = '';
+        document.getElementById('warrantyDate').value = '';
+    }
+
+    function renderItems() {
+        const list = document.getElementById('item-list');
+        const alerts = document.getElementById('expiry-alerts');
+        const stats = document.getElementById('stats-area');
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        
+        list.innerHTML = '';
+        alerts.innerHTML = '';
+        
+        const today = new Date();
+        const thirtyDaysLater = new Date();
+        thirtyDaysLater.setDate(today.getDate() + 30);
+
+        let totalAmount = 0;
+        const currentYearStart = new Date(new Date().getFullYear(), 0, 1);
+
+        // 篩選與警示邏輯
+        items.forEach(item => {
+            const buyD = new Date(item.buyDate);
+            // 統計今年起的金額
+            if (buyD >= currentYearStart && buyD <= today) {
+                totalAmount += parseFloat(item.price);
+            }
+
+            // 檢查 30 天內到期或保固[cite: 2]
+            const expD = item.expiryDate ? new Date(item.expiryDate) : null;
+            const warD = item.warrantyDate ? new Date(item.warrantyDate) : null;
+
+            if((expD && expD <= thirtyDaysLater && expD >= today) || (warD && warD <= thirtyDaysLater && warD >= today)) {
+                alerts.innerHTML += `<div class="warning-box">📌 即將到期：${item.name} (${item.expiryDate || item.warrantyDate})</div>`;
+            }
+        });
+
+        stats.innerText = `今年累計支出 (01/01 - 今日)：$${totalAmount.toLocaleString()}`;
+
+        // 搜尋過濾
+        const filtered = items.filter(i => i.name.toLowerCase().includes(query));
+        filtered.sort((a,b) => new Date(b.buyDate) - new Date(a.buyDate)).forEach(item => {
+            list.innerHTML += `
+                <div class="item-card">
+                    <div class="item-header">
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-category">${item.category}</span>
+                    </div>
+                    <div class="item-info">📅 購買日：${item.buyDate}</div>
+                    <div class="item-info">💰 金額：$${parseFloat(item.price).toLocaleString()}</div>
+                    ${item.warrantyDate ? `<div class="item-info" style="color:#8A9A5B">🛡️ 保固至：${item.warrantyDate}</div>` : ''}
+                    ${item.note ? `<div class="item-info" style="font-style:italic; border-top:1px solid #f0f0f0; margin-top:8px; padding-top:4px;">${item.note}</div>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    function downloadBackup() {
+        const dataStr = JSON.stringify(items, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `物品備份_${new Date().toISOString().slice(0,10)}.json`;
+        link.click();
+        localStorage.setItem('last_backup', new Date().toLocaleString());
+        updateBackupDateDisplay();
+    }
+
+    function importBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                items = JSON.parse(e.target.result);
+                localStorage.setItem('my_items', JSON.stringify(items));
+                alert('匯入完成！');
+                renderItems();
+            } catch(err) { alert('檔案格式不正確'); }
+        };
+        reader.readAsText(file);
+    }
+
+    function updateBackupDateDisplay() {
+        document.getElementById('lastBackupDisplay').innerText = `上次備份：${localStorage.getItem('last_backup') || '尚未備份'}`;
+    }
+</script>
 </body>
 </html>
-index.html
-目前顯示的是「index.html」。
