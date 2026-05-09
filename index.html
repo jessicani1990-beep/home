@@ -49,14 +49,13 @@
             background: var(--card-bg); border-radius: 4px; font-size: 14px; box-sizing: border-box;
         }
 
-        /* 篩選器樣式 */
         .filter-section {
             background: #EBEBE9; padding: 15px; border-radius: 8px; margin-bottom: 20px;
         }
         .date-range {
             display: flex; align-items: center; gap: 10px; margin-top: 8px;
         }
-        .date-range input { padding: 8px; font-size: 12px; }
+        .date-range input { padding: 8px; font-size: 12px; background: #fff; }
 
         .photo-placeholder {
             width: 100%; height: 180px; border: 1px dashed var(--border-color);
@@ -127,6 +126,7 @@
             <label style="font-weight:bold; color:var(--text-color)">區間篩選與搜尋</label>
             <input type="text" id="searchInput" placeholder="搜尋名稱..." oninput="renderItems()" style="margin: 10px 0;">
             <div class="date-range">
+                <!-- 開始日期固定在當年 1/1 -->
                 <input type="date" id="filterStart" onchange="renderItems()">
                 <span style="font-size:12px">至</span>
                 <input type="date" id="filterEnd" onchange="renderItems()">
@@ -150,19 +150,26 @@
 <script>
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
     
-    // 初始化日期：設定篩選區間為當年 1/1 到今天
-    const todayStr = new Date().toISOString().split('T')[0];
-    const yearStartStr = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
-    
-    document.getElementById('buyDate').value = todayStr;
-    document.getElementById('filterStart').value = yearStartStr;
-    document.getElementById('filterEnd').value = todayStr;
+    // 初始化設定：開始日期永遠固定在當年的 1/1
+    function resetFilters() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const yearStartStr = `${now.getFullYear()}-01-01`;
+        
+        document.getElementById('buyDate').value = todayStr;
+        document.getElementById('filterStart').value = yearStartStr;
+        document.getElementById('filterEnd').value = todayStr;
+    }
+
+    resetFilters();
 
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('btn-' + pageId.split('-')[0]).classList.add('active');
+        
+        // 每次切換回搜尋頁面時，自動更新資料顯示
         if(pageId === 'search-page') renderItems();
     }
 
@@ -195,7 +202,7 @@
         const query = document.getElementById('searchInput').value.toLowerCase();
         const startDate = new Date(document.getElementById('filterStart').value);
         const endDate = new Date(document.getElementById('filterEnd').value);
-        endDate.setHours(23, 59, 59); // 確保包含當天
+        endDate.setHours(23, 59, 59);
 
         list.innerHTML = '';
         alerts.innerHTML = '';
@@ -206,7 +213,7 @@
 
         let rangeTotal = 0;
 
-        // 1. 先處理即將到期的警示 (不受日期區間篩選影響，因為那是未來的提醒)
+        // 30 天內到期警示 (自動掃描所有資料，不受當前區間篩選限制)[cite: 2]
         items.forEach(item => {
             const expD = item.expiryDate ? new Date(item.expiryDate) : null;
             const warD = item.warrantyDate ? new Date(item.warrantyDate) : null;
@@ -215,7 +222,7 @@
             }
         });
 
-        // 2. 根據區間與關鍵字篩選顯示清單
+        // 根據「當年 1/1 開始」的區間與關鍵字進行過濾[cite: 2]
         const filtered = items.filter(item => {
             const buyD = new Date(item.buyDate);
             const matchName = item.name.toLowerCase().includes(query);
@@ -237,7 +244,7 @@
                 </div>`;
         });
 
-        stats.innerText = `選定區間支出總計：$${rangeTotal.toLocaleString()}`;
+        stats.innerText = `今年累計支出總計：$${rangeTotal.toLocaleString()}`;
     }
 
     function downloadBackup() {
