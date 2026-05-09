@@ -151,16 +151,20 @@
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
     
     // 初始化設定：開始日期永遠固定在當年的 1/1
-    function resetFilters() {
+   function resetFilters() {
         const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
-        const yearStartStr = `${now.getFullYear()}-01-01`;
+        const currentYear = now.getFullYear();
+        
+        // 取得今天的日期字串 (YYYY-MM-DD)
+        const todayStr = now.toLocaleDateString('sv').split(' ')[0]; 
+        
+        // 強制鎖定當年的 1 月 1 號，不經過 Date 對象轉換以防時區偏移[cite: 2, 3]
+        const yearStartStr = `${currentYear}-01-01`;
         
         document.getElementById('buyDate').value = todayStr;
         document.getElementById('filterStart').value = yearStartStr;
         document.getElementById('filterEnd').value = todayStr;
     }
-
     resetFilters();
 
     function showPage(pageId) {
