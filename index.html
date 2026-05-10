@@ -206,6 +206,23 @@
             transition: background .15s;
         }
         .photo-actions button:hover { background: rgba(0,0,0,0.75); }
+
+        /* ── SORT BUTTONS ── */
+        .sort-row {
+            display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap;
+        }
+        .sort-btn {
+            background: none; border: 1.5px solid var(--border);
+            border-radius: 99px; padding: 5px 12px;
+            font-size: 12px; font-family: inherit; color: var(--muted);
+            cursor: pointer; transition: all .15s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .sort-btn.active {
+            border-color: var(--accent); color: var(--accent);
+            background: var(--accent-dim); font-weight: 500;
+        }
+
         .section-label {
             font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
             color: var(--muted); margin: 22px 0 10px;
@@ -497,6 +514,12 @@
                 <span>—</span>
                 <input type="date" id="filterEnd" onchange="renderItems()">
             </div>
+            <div class="sort-row">
+                <button class="sort-btn active" id="sort-date-desc" onclick="setSort('date-desc')">📅 日期新→舊</button>
+                <button class="sort-btn" id="sort-date-asc"  onclick="setSort('date-asc')">📅 日期舊→新</button>
+                <button class="sort-btn" id="sort-price-desc" onclick="setSort('price-desc')">💰 金額高→低</button>
+                <button class="sort-btn" id="sort-price-asc"  onclick="setSort('price-asc')">💰 金額低→高</button>
+            </div>
         </div>
 
         <div id="expiry-alerts"></div>
@@ -520,6 +543,12 @@
                     <input type="date" id="archiveFilterStart" onchange="renderArchived()">
                     <span>—</span>
                     <input type="date" id="archiveFilterEnd" onchange="renderArchived()">
+                </div>
+                <div class="sort-row">
+                    <button class="sort-btn active" id="arc-sort-date-desc" onclick="setArchiveSort('date-desc')">📅 日期新→舊</button>
+                    <button class="sort-btn" id="arc-sort-date-asc"   onclick="setArchiveSort('date-asc')">📅 日期舊→新</button>
+                    <button class="sort-btn" id="arc-sort-price-desc" onclick="setArchiveSort('price-desc')">💰 金額高→低</button>
+                    <button class="sort-btn" id="arc-sort-price-asc"  onclick="setArchiveSort('price-asc')">💰 金額低→高</button>
                 </div>
             </div>
             <div id="archive-stats"></div>
@@ -707,7 +736,34 @@
         confirmDelete(id, item.name);
     }
 
-    let currentView = 'active'; // 'active' | 'archived'
+    let currentView = 'active';
+    let currentSort = 'date-desc';
+    let currentArchiveSort = 'date-desc';
+
+    function setSort(s) {
+        currentSort = s;
+        ['date-desc','date-asc','price-desc','price-asc'].forEach(k =>
+            document.getElementById('sort-' + k).classList.toggle('active', k === s)
+        );
+        renderItems();
+    }
+
+    function setArchiveSort(s) {
+        currentArchiveSort = s;
+        ['date-desc','date-asc','price-desc','price-asc'].forEach(k =>
+            document.getElementById('arc-sort-' + k).classList.toggle('active', k === s)
+        );
+        renderArchived();
+    }
+
+    function applySortFn(sortKey) {
+        return (a, b) => {
+            if (sortKey === 'date-desc')  return b.buyDate.localeCompare(a.buyDate);
+            if (sortKey === 'date-asc')   return a.buyDate.localeCompare(b.buyDate);
+            if (sortKey === 'price-desc') return parseFloat(b.price || 0) - parseFloat(a.price || 0);
+            if (sortKey === 'price-asc')  return parseFloat(a.price || 0) - parseFloat(b.price || 0);
+        };
+    }
 
     function setView(view) {
         currentView = view;
@@ -767,7 +823,7 @@
             && (cat === 'all' || i.category === cat)
             && (!start || i.buyDate >= start)
             && (!end   || i.buyDate <= end)
-        ).sort((a,b) => b.buyDate.localeCompare(a.buyDate));
+        ).sort(applySortFn(currentArchiveSort));
 
         const total = archived.reduce((s, i) => s + parseFloat(i.price || 0), 0);
         stats.innerHTML = `<div class="stats-pill">
@@ -875,7 +931,7 @@
                 && item.name.toLowerCase().includes(query)
                 && (cat === 'all' || item.category === cat)
                 && item.buyDate >= start && item.buyDate <= end;
-        }).sort((a, b) => b.buyDate.localeCompare(a.buyDate));
+        }).sort(applySortFn(currentSort));
 
         const total = filtered.reduce((s, i) => s + parseFloat(i.price || 0), 0);
 
