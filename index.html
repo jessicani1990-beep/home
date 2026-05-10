@@ -309,6 +309,21 @@
             transition: opacity .15s;
         }
         .alert-archive-btn:hover { opacity: 1; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #2E2E2B; color: white;
+            padding: 11px 22px; border-radius: 99px;
+            font-size: 13px; font-weight: 500; letter-spacing: .3px;
+            opacity: 0; pointer-events: none;
+            transition: opacity .22s, transform .22s;
+            z-index: 999; white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .toast.show {
+            opacity: 1; transform: translateX(-50%) translateY(0);
+        }
         .backup-page-inner {
             display: flex; flex-direction: column; align-items: center;
             gap: 14px; padding-top: 20px;
@@ -405,7 +420,7 @@
         <button class="btn-primary" id="save-btn" onclick="saveItem()">
             <span>✓</span> 儲存紀錄
         </button>
-        <button id="cancel-edit" class="btn-ghost" style="display:none" onclick="clearForm(); showPage('search-page');">
+        <button id="cancel-edit" class="btn-ghost" style="display:none" onclick="clearForm();">
             取消編輯
         </button>
     </div>
@@ -448,6 +463,23 @@
 
         <!-- 封存區 -->
         <div id="archived-view" style="display:none">
+            <div class="filter-card">
+                <div class="filter-row">
+                    <select id="archiveFilterCategory" onchange="renderArchived()" style="flex:1">
+                        <option value="all">所有分類</option>
+                        <option>食品飲料</option><option>3C</option><option>家電</option>
+                        <option>家具軟裝</option><option>工具文具</option><option>交通</option>
+                        <option>健康美容</option><option>視聽圖書</option><option>衣物配件</option><option>其他</option>
+                    </select>
+                    <input type="text" id="archiveSearchInput" placeholder="搜尋名稱…" oninput="renderArchived()" style="flex:2">
+                </div>
+                <div class="date-row">
+                    <input type="date" id="archiveFilterStart" onchange="renderArchived()">
+                    <span>—</span>
+                    <input type="date" id="archiveFilterEnd" onchange="renderArchived()">
+                </div>
+            </div>
+            <div id="archive-stats"></div>
             <div id="archived-list"></div>
         </div>
 
@@ -470,9 +502,18 @@
 
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
     let currentPhotoBase64 = "";
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2200);
+    }
 
     function resetFilters() {
         const now = new Date();
@@ -533,9 +574,8 @@
         }
 
         localStorage.setItem('my_items', JSON.stringify(items));
-        alert('儲存成功 ✓');
+        showToast('✓ 儲存成功');
         clearForm();
-        showPage('search-page');
     }
 
     function clearForm() {
@@ -590,8 +630,19 @@
         document.getElementById('tab-archived').classList.toggle('active', view === 'archived');
         document.getElementById('active-view').style.display   = view === 'active'   ? '' : 'none';
         document.getElementById('archived-view').style.display = view === 'archived' ? '' : 'none';
-        if (view === 'archived') renderArchived();
-        else renderItems();
+        if (view === 'archived') {
+            // init archive date range on first open
+            const s = document.getElementById('archiveFilterStart');
+            const e = document.getElementById('archiveFilterEnd');
+            if (!s.value) {
+                const now = new Date();
+                s.value = `${now.getFullYear()}-01-01`;
+                e.value = now.toLocaleDateString('en-CA');
+            }
+            renderArchived();
+        } else {
+            renderItems();
+        }
     }
 
     function archiveItem(id) {
@@ -618,8 +669,27 @@
 
     function renderArchived() {
         updateArchiveCount();
-        const list = document.getElementById('archived-list');
-        const archived = items.filter(i => i.archived).sort((a,b) => b.buyDate.localeCompare(a.buyDate));
+        const list  = document.getElementById('archived-list');
+        const stats = document.getElementById('archive-stats');
+        const query = document.getElementById('archiveSearchInput')?.value.toLowerCase() || '';
+        const cat   = document.getElementById('archiveFilterCategory')?.value || 'all';
+        const start = document.getElementById('archiveFilterStart')?.value || '';
+        const end   = document.getElementById('archiveFilterEnd')?.value || '';
+
+        const archived = items.filter(i =>
+            i.archived
+            && i.name.toLowerCase().includes(query)
+            && (cat === 'all' || i.category === cat)
+            && (!start || i.buyDate >= start)
+            && (!end   || i.buyDate <= end)
+        ).sort((a,b) => b.buyDate.localeCompare(a.buyDate));
+
+        const total = archived.reduce((s, i) => s + parseFloat(i.price || 0), 0);
+        stats.innerHTML = `<div class="stats-pill">
+            <span>🗂</span>
+            共 ${archived.length} 筆　｜　總計 $${total.toLocaleString()}
+        </div>`;
+
         if (archived.length === 0) {
             list.innerHTML = `<div class="empty-state">
                 <div class="es-icon">🗂</div>
