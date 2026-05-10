@@ -166,7 +166,46 @@
         }
         .btn-ghost:hover { color: var(--danger); }
 
-        /* ── SECTION DIVIDER ── */
+        /* ── CONFIRM DIALOG ── */
+        .dialog-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+            z-index: 500; display: flex; align-items: flex-end; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity .2s;
+        }
+        .dialog-overlay.show { opacity: 1; pointer-events: all; }
+        .dialog-box {
+            background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
+            width: 100%; max-width: 480px; padding: 28px 24px 36px;
+            transform: translateY(30px); transition: transform .25s;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.12);
+        }
+        .dialog-overlay.show .dialog-box { transform: translateY(0); }
+        .dialog-title {
+            font-size: 16px; font-weight: 600; margin-bottom: 8px;
+        }
+        .dialog-msg {
+            font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.6;
+        }
+        .dialog-actions { display: flex; gap: 10px; }
+        .dialog-actions button { flex: 1; padding: 13px; border-radius: var(--radius-sm); border: none; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background .15s; }
+        .dialog-cancel { background: var(--bg); color: var(--text); }
+        .dialog-cancel:hover { background: var(--border); }
+        .dialog-confirm { background: var(--danger); color: white; }
+        .dialog-confirm:hover { background: #b05555; }
+
+        /* ── PHOTO OVERLAY ── */
+        .photo-zone { position: relative; }
+        .photo-actions {
+            position: absolute; top: 8px; right: 8px;
+            display: flex; gap: 6px;
+        }
+        .photo-actions button {
+            background: rgba(0,0,0,0.52); color: white; border: none;
+            border-radius: 6px; font-size: 11px; font-family: inherit;
+            padding: 5px 10px; cursor: pointer; backdrop-filter: blur(4px);
+            transition: background .15s;
+        }
+        .photo-actions button:hover { background: rgba(0,0,0,0.75); }
         .section-label {
             font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
             color: var(--muted); margin: 22px 0 10px;
@@ -363,13 +402,17 @@
 
     <!-- ── 頁面一：新增 / 編輯 ── -->
     <div id="add-page" class="page active">
-        <div class="photo-zone" onclick="document.getElementById('photoInput').click()">
+        <div class="photo-zone" id="photo-zone" onclick="document.getElementById('photoInput').click()">
             <div id="photoPlaceholder" class="photo-placeholder">
                 <span class="icon">📸</span>
                 <span>點擊拍照或上傳圖片</span>
             </div>
             <img id="photoPreview" style="display:none">
             <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+            <div class="photo-actions" id="photo-actions" style="display:none">
+                <button onclick="event.stopPropagation(); document.getElementById('photoInput').click()">重拍</button>
+                <button onclick="event.stopPropagation(); removePhoto()">移除</button>
+            </div>
         </div>
 
         <input type="hidden" id="edit-id">
@@ -504,6 +547,18 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- 確認刪除對話框 -->
+<div class="dialog-overlay" id="dialog-overlay" onclick="closeDialog()">
+    <div class="dialog-box" onclick="event.stopPropagation()">
+        <div class="dialog-title">刪除此物品？</div>
+        <div class="dialog-msg" id="dialog-msg"></div>
+        <div class="dialog-actions">
+            <button class="dialog-cancel" onclick="closeDialog()">取消</button>
+            <button class="dialog-confirm" id="dialog-confirm-btn">確認刪除</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let items = JSON.parse(localStorage.getItem('my_items')) || [];
     let currentPhotoBase64 = "";
@@ -513,6 +568,34 @@
         t.textContent = msg;
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    let _pendingDeleteId = null;
+    function confirmDelete(id, name) {
+        _pendingDeleteId = id;
+        document.getElementById('dialog-msg').textContent = `「${name}」刪除後無法復原。`;
+        document.getElementById('dialog-confirm-btn').onclick = () => {
+            items = items.filter(i => i.id !== _pendingDeleteId);
+            localStorage.setItem('my_items', JSON.stringify(items));
+            closeDialog();
+            if (currentView === 'archived') renderArchived();
+            else renderItems();
+            showToast('已刪除');
+        };
+        document.getElementById('dialog-overlay').classList.add('show');
+    }
+    function closeDialog() {
+        document.getElementById('dialog-overlay').classList.remove('show');
+        _pendingDeleteId = null;
+    }
+
+    function removePhoto() {
+        currentPhotoBase64 = '';
+        const prev = document.getElementById('photoPreview');
+        prev.src = ''; prev.style.display = 'none';
+        document.getElementById('photoPlaceholder').style.display = 'flex';
+        document.getElementById('photo-actions').style.display = 'none';
+        document.getElementById('photoInput').value = '';
     }
 
     function resetFilters() {
@@ -535,6 +618,7 @@
             prev.src = currentPhotoBase64;
             prev.style.display = 'block';
             document.getElementById('photoPlaceholder').style.display = 'none';
+            document.getElementById('photo-actions').style.display = 'flex';
         };
         reader.readAsDataURL(file);
     }
@@ -585,6 +669,7 @@
         const prev = document.getElementById('photoPreview');
         prev.src = ''; prev.style.display = 'none';
         document.getElementById('photoPlaceholder').style.display = 'flex';
+        document.getElementById('photo-actions').style.display = 'none';
         currentPhotoBase64 = "";
         document.getElementById('save-btn').innerHTML = '<span>✓</span> 儲存紀錄';
         document.getElementById('cancel-edit').style.display = 'none';
@@ -608,6 +693,7 @@
             const prev = document.getElementById('photoPreview');
             prev.src = item.photo; prev.style.display = 'block';
             document.getElementById('photoPlaceholder').style.display = 'none';
+            document.getElementById('photo-actions').style.display = 'flex';
         }
 
         document.getElementById('save-btn').innerHTML = '<span>✓</span> 確認更新';
@@ -616,10 +702,9 @@
     }
 
     function deleteItem(id) {
-        if (!confirm('確定要刪除這筆紀錄嗎？')) return;
-        items = items.filter(i => i.id !== id);
-        localStorage.setItem('my_items', JSON.stringify(items));
-        renderItems();
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        confirmDelete(id, item.name);
     }
 
     let currentView = 'active'; // 'active' | 'archived'
